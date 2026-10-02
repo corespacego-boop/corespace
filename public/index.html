@@ -794,6 +794,7 @@
     </section>
   </div>
 
+  <script>
     // Backend API base URL: defaults to our Indian Voroa backend for Cloudflare Pages
     // (if served from the backend itself, uses relative paths)
     const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
@@ -801,6 +802,7 @@
       : (window.location.hostname.includes('pages.dev') || window.location.hostname.includes('cloudflare'))
       ? 'https://corespace-api.getvoroa.com'
       : '';
+
 
     let mode = 'dual';
     let currentAcademiaCdigest = null;

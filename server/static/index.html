@@ -795,9 +795,19 @@
   </div>
 
   <script>
+    // Backend API base URL: defaults to our Indian Voroa backend for Cloudflare Pages
+    // (if served from the backend itself, uses relative paths)
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? ''
+      : (window.location.hostname.includes('pages.dev') || window.location.hostname.includes('cloudflare'))
+      ? 'https://corespace-api.getvoroa.com'
+      : '';
+
+
     let mode = 'dual';
     let currentAcademiaCdigest = null;
     let currentSingleCdigest = null;
+
 
     function setMode(newMode) {
       mode = newMode;
@@ -851,7 +861,7 @@
       const wrap = document.getElementById('acad-captcha-img-wrap');
       wrap.innerHTML = '<span style="color:#666; font-size:11px;">Loading...</span>';
       try {
-        const res = await fetch('/portal/captcha', { method: 'POST' });
+        const res = await fetch(`${API_BASE}/portal/captcha`, { method: 'POST' });
         const data = await res.json();
         if (data.image) {
           wrap.innerHTML = `<img src="${data.image}" alt="Captcha">`;
@@ -866,7 +876,7 @@
       const wrap = document.getElementById('single-captcha-img-wrap');
       wrap.innerHTML = '<span style="color:#666; font-size:11px;">Loading...</span>';
       try {
-        const res = await fetch('/portal/captcha', { method: 'POST' });
+        const res = await fetch(`${API_BASE}/portal/captcha`, { method: 'POST' });
         const data = await res.json();
         if (data.image) {
           wrap.innerHTML = `<img src="${data.image}" alt="Captcha">`;
@@ -938,7 +948,7 @@
           };
         }
 
-        const response = await fetch(endpoint, {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
