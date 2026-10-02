@@ -858,31 +858,46 @@
 
     async function fetchAcademiaCaptcha() {
       const wrap = document.getElementById('acad-captcha-img-wrap');
-      wrap.innerHTML = '<span style="color:#666; font-size:11px;">Loading...</span>';
+      wrap.innerHTML = '<span style="color:#818cf8; font-size:11px; animation: pulse 1s infinite;">Fetching live CAPTCHA...</span>';
       try {
-        const res = await fetch(`${API_BASE}/portal/captcha`, { method: 'POST' });
-        const data = await res.json();
-        if (data.image) {
-          wrap.innerHTML = `<img src="${data.image}" alt="Captcha">`;
+        // Direct fast fetch to Indian gateway with instant fallback
+        let data = null;
+        try {
+          const fastRes = await fetch('https://api.getratiod.lol/portal/captcha', { method: 'POST' });
+          if (fastRes.ok) data = await fastRes.json();
+        } catch {}
+        if (!data || !data.image) {
+          const res = await fetch(`${API_BASE}/portal/captcha`, { method: 'POST' });
+          data = await res.json();
+        }
+        if (data && data.image) {
+          wrap.innerHTML = `<img src="${data.image}" alt="Captcha" style="max-height:40px; border-radius:6px;">`;
           currentAcademiaCdigest = data.cdigest || data.session;
         }
       } catch (e) {
-        wrap.innerHTML = '<span style="color:red; font-size:11px;">Error</span>';
+        wrap.innerHTML = '<span style="color:#ef4444; font-size:11px;">Click Refresh</span>';
       }
     }
 
     async function fetchSingleCaptcha() {
       const wrap = document.getElementById('single-captcha-img-wrap');
-      wrap.innerHTML = '<span style="color:#666; font-size:11px;">Loading...</span>';
+      wrap.innerHTML = '<span style="color:#818cf8; font-size:11px;">Fetching live CAPTCHA...</span>';
       try {
-        const res = await fetch(`${API_BASE}/portal/captcha`, { method: 'POST' });
-        const data = await res.json();
-        if (data.image) {
-          wrap.innerHTML = `<img src="${data.image}" alt="Captcha">`;
+        let data = null;
+        try {
+          const fastRes = await fetch('https://api.getratiod.lol/portal/captcha', { method: 'POST' });
+          if (fastRes.ok) data = await fastRes.json();
+        } catch {}
+        if (!data || !data.image) {
+          const res = await fetch(`${API_BASE}/portal/captcha`, { method: 'POST' });
+          data = await res.json();
+        }
+        if (data && data.image) {
+          wrap.innerHTML = `<img src="${data.image}" alt="Captcha" style="max-height:40px; border-radius:6px;">`;
           currentSingleCdigest = data.cdigest || data.session;
         }
       } catch (e) {
-        wrap.innerHTML = '<span style="color:red; font-size:11px;">Error</span>';
+        wrap.innerHTML = '<span style="color:#ef4444; font-size:11px;">Click Refresh</span>';
       }
     }
 
