@@ -970,8 +970,11 @@
 
         // Check if there was partial error in dual login
         if (mode === 'dual' && data.errors && Object.keys(data.errors).length > 0) {
-          const warningMsg = Object.entries(data.errors).map(([k, v]) => `${k.toUpperCase()} error: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join('; ');
+          const warningMsg = Object.entries(data.errors).map(([k, v]) => `${k.toUpperCase()} error: ${typeof v === 'object' ? (v.message || JSON.stringify(v)) : v}`).join(' | ');
           console.warn("Partial dual-login error:", warningMsg);
+          window._lastDualWarning = warningMsg;
+        } else {
+          window._lastDualWarning = null;
         }
 
         renderDashboard(data);
@@ -994,7 +997,13 @@
       else if (!data.portal_ok && data.academia_ok) sourceText = 'Academia Only (Zoho)';
       else if (data.isPortal) sourceText = 'Student Portal (sp.srmist)';
       else if (data.source === 'academia') sourceText = 'Academia (Zoho)';
-      document.getElementById('portal-source-info').innerText = `Source: ${sourceText}`;
+      
+      let sourceInfoEl = document.getElementById('portal-source-info');
+      if (window._lastDualWarning) {
+        sourceInfoEl.innerHTML = `<span style="color:#ef4444;">⚠️ Notice: ${window._lastDualWarning}</span> (Showing: ${sourceText})`;
+      } else {
+        sourceInfoEl.innerText = `Source: ${sourceText}`;
+      }
 
       // 1. PERSONAL DETAILS (MERGED FROM BOTH)
       const prof = data.profile || {};
