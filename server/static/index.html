@@ -795,12 +795,12 @@
   </div>
 
   <script>
-    // Backend API base URL: Render handles Academia + fast responses, routing Portal through Voroa
+    // Backend API base URL: Render handles Academia + fast responses, routing Portal through Indian gateway
     const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ? ''
-      : (window.location.hostname.includes('pages.dev') || window.location.hostname.includes('cloudflare'))
-      ? 'https://corespace-api-1.onrender.com'
-      : '';
+      : (window.location.hostname.includes('onrender.com'))
+      ? ''
+      : 'https://corespace-api-1.onrender.com';
 
 
 
