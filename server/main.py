@@ -48,6 +48,11 @@ async def lifespan(app: FastAPI):
     await app.state.http_client.aclose()
 
 
+# ── portal authentication gateway ────────────────────────────
+# When deployed on cloud environments (Render, HuggingFace) that are geoblocked by SRM,
+# route Student Portal requests through the live Indian portal gateway.
+PORTAL_GATEWAY_URL = os.getenv("PORTAL_GATEWAY_URL", "https://api.getratiod.lol")
+
 # ── tinyocr captcha auto-solver ──────────────────────────────
 TINYOCR_URL = os.getenv("TINYOCR_URL", "http://127.0.0.1:8080")
 TINYOCR_API_KEY = os.getenv("TINYOCR_API_KEY", "")
@@ -522,6 +527,16 @@ _portal_captcha_sessions = {}
 @app.post("/portal/captcha")
 @limiter.limit("15/minute")
 async def portal_captcha(request: Request):
+    # If gateway is configured, try fetching captcha from the gateway first
+    if PORTAL_GATEWAY_URL:
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.post(f"{PORTAL_GATEWAY_URL}/portal/captcha")
+                if resp.status_code == 200:
+                    return resp.json()
+        except Exception as e:
+            print(f"  -> [GATEWAY] Captcha gateway error ({e}), falling back to direct session.", flush=True)
+
     session = PortalSession()
     try:
         info = await session.load_captcha()
@@ -551,6 +566,33 @@ async def portal_captcha(request: Request):
 @app.post("/portal/login")
 @limiter.limit("15/minute")
 async def portal_login(creds: PortalCredentials, request: Request):
+    # 1. When running on Render / Cloud, forward to the Indian Portal Gateway
+    if PORTAL_GATEWAY_URL:
+        try:
+            gw_body = creds.model_dump(exclude_none=True)
+            async with httpx.AsyncClient(timeout=25.0) as client:
+                gw_resp = await client.post(
+                    f"{PORTAL_GATEWAY_URL}/portal/login",
+                    json=gw_body,
+                    headers={"Content-Type": "application/json"}
+                )
+                if gw_resp.status_code == 200:
+                    gw_data = gw_resp.json()
+                    if gw_data.get("success"):
+                        print(f"  -> [GATEWAY] Portal login successfully handled via gateway!", flush=True)
+                        return gw_data
+                elif gw_resp.status_code in [400, 401, 403]:
+                    # Forward authentication error details accurately (e.g. invalid credentials or captcha)
+                    try:
+                        err_payload = gw_resp.json()
+                        raise HTTPException(status_code=gw_resp.status_code, detail=err_payload.get("detail", err_payload))
+                    except (json.JSONDecodeError, ValueError):
+                        pass
+        except HTTPException:
+            raise
+        except Exception as e:
+            print(f"  -> [GATEWAY] Gateway connection failed ({e}), falling back to direct portal client.", flush=True)
+
     if creds.cookies:
         client = PortalClient(creds.cookies)
         att_html, marks, tt_html, prof_html = await asyncio.gather(
@@ -594,6 +636,7 @@ async def portal_login(creds: PortalCredentials, request: Request):
     captcha_val = creds.captcha
     ocr_attempts = 0
     login_res = None
+
 
     if not captcha_val:
         while ocr_attempts < 4:
@@ -845,6 +888,22 @@ async def dual_login(creds: DualLoginCredentials, request: Request):
 @app.post("/portal/refresh")
 @limiter.limit("60/minute")
 async def portal_refresh(creds: PortalCredentials, request: Request):
+    if PORTAL_GATEWAY_URL:
+        try:
+            gw_body = creds.model_dump(exclude_none=True)
+            async with httpx.AsyncClient(timeout=25.0) as client:
+                gw_resp = await client.post(
+                    f"{PORTAL_GATEWAY_URL}/portal/refresh",
+                    json=gw_body,
+                    headers={"Content-Type": "application/json"}
+                )
+                if gw_resp.status_code == 200:
+                    gw_data = gw_resp.json()
+                    if gw_data.get("success"):
+                        return gw_data
+        except Exception as e:
+            print(f"  -> [GATEWAY] Portal refresh gateway fallback: {e}", flush=True)
+
     if not creds.cookies:
         raise HTTPException(status_code=401, detail={"type": "SESSION_EXPIRED"})
     client = PortalClient(creds.cookies)
