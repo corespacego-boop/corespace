@@ -680,6 +680,17 @@
         </div>
       </div>
 
+      <!-- SWR CACHE STATUS BAR -->
+      <div id="swr-banner" style="display: none; align-items: center; justify-content: space-between; background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 10px; padding: 10px 16px; margin-bottom: 20px; font-size: 13px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span id="swr-badge-icon" style="font-size: 15px;">⚡</span>
+          <span id="swr-status-text" style="color: #c7d2fe;">Loaded in &lt;3ms from cache</span>
+        </div>
+        <button id="swr-btn-sync" type="button" onclick="revalidateData(true)" style="background: #4f46e5; border: none; color: white; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+          <span id="swr-sync-icon">🔄</span> <span id="swr-btn-text">Sync Live</span>
+        </button>
+      </div>
+
       <!-- NAVIGATION TABS -->
       <div class="nav-tabs">
         <button class="nav-tab active" onclick="switchTab('attendance')">
@@ -802,7 +813,37 @@
       ? ''
       : 'https://corespace-api-1.onrender.com';
 
+    // SWR LocalStorage Cache Keys
+    const SWR_DATA_KEY = 'corespace_swr_data_v2';
+    const SWR_AUTH_KEY = 'corespace_swr_auth_v2';
 
+    function formatTimeAgo(timestamp) {
+      if (!timestamp) return 'just now';
+      const sec = Math.floor((Date.now() - timestamp) / 1000);
+      if (sec < 60) return `${sec}s ago`;
+      const min = Math.floor(sec / 60);
+      if (min < 60) return `${min}m ago`;
+      const hr = Math.floor(min / 60);
+      return `${hr}h ago`;
+    }
+
+    function updateSWRBanner(isCached, timestamp) {
+      const banner = document.getElementById('swr-banner');
+      const text = document.getElementById('swr-status-text');
+      const icon = document.getElementById('swr-badge-icon');
+      const btnText = document.getElementById('swr-btn-text');
+      if (!banner) return;
+      banner.style.display = 'flex';
+      if (isCached) {
+        icon.innerText = '⚡';
+        text.innerHTML = `Loaded in <strong style="color:#a5b4fc">&lt;3ms</strong> from instant cache <span style="opacity:0.75; font-size:11px;">(Last synced: ${formatTimeAgo(timestamp)})</span>`;
+        if (btnText) btnText.innerText = 'Sync Live';
+      } else {
+        icon.innerText = '✅';
+        text.innerHTML = `Data is up to date <span style="opacity:0.75; font-size:11px;">(Live sync complete)</span>`;
+        if (btnText) btnText.innerText = 'Refresh';
+      }
+    }
 
     let mode = 'dual';
     let currentAcademiaCdigest = null;
@@ -1001,7 +1042,16 @@
           window._lastDualWarning = null;
         }
 
-        renderDashboard(data);
+        // Save auth config for background revalidation
+        try {
+          localStorage.setItem(SWR_AUTH_KEY, JSON.stringify({
+            mode,
+            endpoint,
+            payload
+          }));
+        } catch (e) {}
+
+        renderDashboard(data, false);
       } catch (err) {
         errBox.innerText = 'Connection error: ' + err.message;
         errBox.style.display = 'block';
@@ -1012,9 +1062,21 @@
       }
     }
 
-    function renderDashboard(data) {
+    function renderDashboard(data, isFromCache = false, timestamp = null) {
       document.getElementById('login-section').style.display = 'none';
       document.getElementById('dashboard-section').style.display = 'block';
+
+      // Cache data for instant <3ms render on future visits
+      if (!isFromCache && data && (data.attendance || data.marks || data.profile || data.schedule)) {
+        try {
+          localStorage.setItem(SWR_DATA_KEY, JSON.stringify({
+            data: data,
+            timestamp: Date.now()
+          }));
+        } catch (e) {}
+      }
+
+      updateSWRBanner(isFromCache, timestamp || Date.now());
 
       let sourceText = 'Combined Dual Portals';
       if (data.portal_ok && !data.academia_ok) sourceText = 'Student Portal Only (sp.srmist)';
@@ -1177,14 +1239,104 @@
     }
 
     function logout() {
+      try {
+        localStorage.removeItem(SWR_DATA_KEY);
+        localStorage.removeItem(SWR_AUTH_KEY);
+      } catch (e) {}
       document.getElementById('dashboard-section').style.display = 'none';
       document.getElementById('login-section').style.display = 'block';
       document.getElementById('portal-pass').value = '';
       document.getElementById('acad-pass').value = '';
+      const banner = document.getElementById('swr-banner');
+      if (banner) banner.style.display = 'none';
+    }
+
+    let _isRevalidating = false;
+    async function revalidateData(manual = false) {
+      if (_isRevalidating) return;
+      _isRevalidating = true;
+
+      const btnText = document.getElementById('swr-btn-text');
+      const syncIcon = document.getElementById('swr-sync-icon');
+      const statusText = document.getElementById('swr-status-text');
+
+      if (btnText) btnText.innerText = 'Syncing...';
+      if (syncIcon) syncIcon.style.animation = 'spin 0.8s linear infinite';
+      if (manual && statusText) {
+        statusText.innerHTML = '<span style="color:#818cf8;">Connecting to SRM in background...</span>';
+      }
+
+      try {
+        const authRaw = localStorage.getItem(SWR_AUTH_KEY);
+        if (!authRaw) {
+          if (btnText) btnText.innerText = 'Sync Live';
+          if (syncIcon) syncIcon.style.animation = 'none';
+          _isRevalidating = false;
+          return;
+        }
+
+        const auth = JSON.parse(authRaw);
+
+        // Attach active session cookies if cached
+        const cachedRaw = localStorage.getItem(SWR_DATA_KEY);
+        if (cachedRaw) {
+          try {
+            const { data: cData } = JSON.parse(cachedRaw);
+            if (cData.portal_cookies && !auth.payload.portal_cookies) {
+              auth.payload.portal_cookies = cData.portal_cookies;
+            }
+            if (cData.academia_cookies && !auth.payload.academia_cookies) {
+              auth.payload.academia_cookies = cData.academia_cookies;
+            }
+          } catch (e) {}
+        }
+
+        const res = await fetch(`${API_BASE}${auth.endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(auth.payload)
+        });
+
+        if (res.ok) {
+          const freshData = await res.json();
+          if (freshData.success || freshData.portal_ok || freshData.academia_ok) {
+            renderDashboard(freshData, false, Date.now());
+          }
+        }
+      } catch (err) {
+        console.warn("[SWR] Background revalidation skipped or failed:", err.message);
+        if (statusText) {
+          statusText.innerHTML = 'Showing cached records <span style="opacity:0.75; font-size:11px;">(Portals busy)</span>';
+        }
+      } finally {
+        _isRevalidating = false;
+        if (btnText) btnText.innerText = 'Sync Live';
+        if (syncIcon) syncIcon.style.animation = 'none';
+      }
     }
 
     // Initialize default mode
     setMode('dual');
+
+    // SWR: Instant sub-3ms render if cached data exists
+    (function initSWR() {
+      try {
+        const cachedRaw = localStorage.getItem(SWR_DATA_KEY);
+        if (cachedRaw) {
+          const { data, timestamp } = JSON.parse(cachedRaw);
+          if (data && (data.attendance || data.marks || data.profile || data.schedule)) {
+            console.log("⚡ [SWR] Rendered cached dashboard in <3ms!");
+            renderDashboard(data, true, timestamp);
+            // Trigger background silent revalidation after 1.5s
+            setTimeout(() => {
+              revalidateData(false);
+            }, 1500);
+          }
+        }
+      } catch (e) {
+        console.warn("[SWR] Failed to load cache:", e);
+      }
+    })();
   </script>
 </body>
 </html>

@@ -846,6 +846,8 @@ async def dual_login(creds: DualLoginCredentials, request: Request):
             results["errors"]["portal"] = portal_res["error"]
         else:
             results["portal_ok"] = True
+            if portal_res.get("cookies"):
+                results["portal_cookies"] = portal_res["cookies"]
             if portal_res.get("attendance"):
                 results["attendance"] = portal_res["attendance"]
             if portal_res.get("marks"):
@@ -861,6 +863,8 @@ async def dual_login(creds: DualLoginCredentials, request: Request):
             results["errors"]["academia"] = acad_res["error"]
         else:
             results["academia_ok"] = True
+            if acad_res.get("cookies"):
+                results["academia_cookies"] = acad_res["cookies"]
             if acad_res.get("profile"):
                 # Merge profile (Student Portal values take priority, fallback to Academia)
                 for k, v in acad_res["profile"].items():
