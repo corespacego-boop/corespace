@@ -612,7 +612,7 @@
                 <label for="acad-pass">Academia Password</label>
                 <input type="password" id="acad-pass" placeholder="••••••••••••" autocomplete="current-password">
               </div>
-              <div class="form-group" id="acad-captcha-group">
+              <div class="form-group" id="acad-captcha-group" style="display: none;">
                 <label for="acad-captcha">Academia CAPTCHA</label>
                 <input type="text" id="acad-captcha" placeholder="Enter CAPTCHA characters">
                 <div class="captcha-box">
@@ -830,7 +830,6 @@
           • Merges all records into a single unified dashboard view!
         `;
         btnText.innerText = 'Authenticate Both & Fetch All Data';
-        fetchAcademiaCaptcha();
       } else if (mode === 'portal') {
         dualFields.style.display = 'none';
         singleFields.style.display = 'block';
@@ -846,15 +845,15 @@
         dualFields.style.display = 'none';
         singleFields.style.display = 'block';
         document.getElementById('lbl-single-username').innerText = 'Email ID (Academia)';
-        document.getElementById('single-captcha-group').style.display = 'block';
+        document.getElementById('single-captcha-group').style.display = 'none';
         hint.innerHTML = `
           <strong>Target: SRM Academia Portal (Zoho)</strong><br>
           • Timetable, Courses, and Calendar.<br>
-          • Requires CAPTCHA entry.
+          • Fast sign in!
         `;
         btnText.innerText = 'Sign In to Academia';
-        fetchSingleCaptcha();
       }
+
     }
 
     async function fetchAcademiaCaptcha() {
