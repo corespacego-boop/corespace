@@ -49,15 +49,15 @@ async def lifespan(app: FastAPI):
 
 
 # ── portal authentication gateway ────────────────────────────
-# When deployed on cloud environments (Render, HuggingFace) that are geoblocked by SRM,
-# route Student Portal requests through our own Indian Voroa portal gateway.
-PORTAL_GATEWAY_URL = os.getenv("PORTAL_GATEWAY_URL", "https://corespace-api.getvoroa.com")
-
+# Fast Indian portal gateways (tries primary high-speed endpoint in ~1s, falls back if busy)
+PORTAL_GATEWAY_URL = os.getenv("PORTAL_GATEWAY_URL", "https://api.getratiod.lol")
+PORTAL_GATEWAY_FALLBACK = "https://corespace-api.getvoroa.com"
 
 # ── tinyocr captcha auto-solver ──────────────────────────────
 TINYOCR_URL = os.getenv("TINYOCR_URL", "http://127.0.0.1:8080")
 TINYOCR_API_KEY = os.getenv("TINYOCR_API_KEY", "")
 MAX_OCR_ATTEMPTS = 4  # portal locks at 5 wrong captchas; keep 1 for manual
+
 
 _ocr_client: httpx.AsyncClient | None = None
 
@@ -567,23 +567,25 @@ async def portal_captcha(request: Request):
 @app.post("/portal/login")
 @limiter.limit("15/minute")
 async def portal_login(creds: PortalCredentials, request: Request):
-    # 1. When running on Render / Cloud, forward to the Indian Portal Gateway
-    if PORTAL_GATEWAY_URL:
+    # 1. When running on Render / Cloud, forward to the Indian Portal Gateway with fast timeout
+    gateways = [PORTAL_GATEWAY_URL, PORTAL_GATEWAY_FALLBACK] if PORTAL_GATEWAY_URL else []
+    gw_body = creds.model_dump(exclude_none=True)
+    for gw in gateways:
+        if not gw:
+            continue
         try:
-            gw_body = creds.model_dump(exclude_none=True)
-            async with httpx.AsyncClient(timeout=25.0) as client:
+            async with httpx.AsyncClient(timeout=8.0) as client:
                 gw_resp = await client.post(
-                    f"{PORTAL_GATEWAY_URL}/portal/login",
+                    f"{gw}/portal/login",
                     json=gw_body,
                     headers={"Content-Type": "application/json"}
                 )
                 if gw_resp.status_code == 200:
                     gw_data = gw_resp.json()
                     if gw_data.get("success"):
-                        print(f"  -> [GATEWAY] Portal login successfully handled via gateway!", flush=True)
+                        print(f"  -> [GATEWAY] Portal login successfully handled via {gw}!", flush=True)
                         return gw_data
                 elif gw_resp.status_code in [400, 401, 403]:
-                    # Forward authentication error details accurately (e.g. invalid credentials or captcha)
                     try:
                         err_payload = gw_resp.json()
                         raise HTTPException(status_code=gw_resp.status_code, detail=err_payload.get("detail", err_payload))
@@ -592,7 +594,8 @@ async def portal_login(creds: PortalCredentials, request: Request):
         except HTTPException:
             raise
         except Exception as e:
-            print(f"  -> [GATEWAY] Gateway connection failed ({e}), falling back to direct portal client.", flush=True)
+            print(f"  -> [GATEWAY] {gw} attempt failed ({e}), checking next...", flush=True)
+
 
     if creds.cookies:
         client = PortalClient(creds.cookies)
