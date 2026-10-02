@@ -795,13 +795,13 @@
   </div>
 
   <script>
-    // Backend API base URL: defaults to our Indian Voroa backend for Cloudflare Pages
-    // (if served from the backend itself, uses relative paths)
+    // Backend API base URL: Render handles Academia + fast responses, routing Portal through Voroa
     const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
       ? ''
       : (window.location.hostname.includes('pages.dev') || window.location.hostname.includes('cloudflare'))
-      ? 'https://corespace-api.getvoroa.com'
+      ? 'https://corespace-api-1.onrender.com'
       : '';
+
 
 
     let mode = 'dual';
