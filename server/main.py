@@ -982,3 +982,8 @@ async def get_announcements():
 
     return _announcements_history
 
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    print(f"Starting corespace server on http://localhost:{port} (local network mode)")
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
