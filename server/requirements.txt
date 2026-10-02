@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+httpx
+beautifulsoup4
+lxml
+pydantic
+python-dotenv
+slowapi
+selectolax
+onnxruntime
+pillow
+numpy
+gradio
