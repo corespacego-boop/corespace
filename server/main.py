@@ -819,6 +819,12 @@ async def dual_login(creds: DualLoginCredentials, request: Request):
                 for k, v in acad_res["profile"].items():
                     if k not in results["profile"] or not results["profile"][k] or results["profile"][k] == "N/A":
                         results["profile"][k] = v
+            # Fallback attendance from Academia if portal attendance was empty
+            if not results["attendance"] and acad_res.get("attendance"):
+                results["attendance"] = acad_res["attendance"]
+            # Fallback marks from Academia if portal marks was empty
+            if not results["marks"] and acad_res.get("marks"):
+                results["marks"] = acad_res["marks"]
             if acad_res.get("schedule"):
                 results["schedule"] = acad_res["schedule"]
                 results["timetable"] = acad_res["schedule"]

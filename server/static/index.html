@@ -1032,7 +1032,7 @@
         attBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#9ca3af;">No attendance records found.</td></tr>';
       } else {
         attList.forEach(item => {
-          const pct = parseFloat(item.attendance_pct ?? item.percentage ?? 0);
+          const pct = parseFloat(item.attendance_pct ?? item.percentage ?? item.percent ?? 0);
           let badgeClass = 'badge-success';
           if (pct < 75) badgeClass = 'badge-danger';
           else if (pct < 80) badgeClass = 'badge-warning';
@@ -1042,7 +1042,7 @@
             <td><strong>${item.course_code || item.code || '-'}</strong></td>
             <td>${item.course_title || item.title || '-'}</td>
             <td>${item.slot || '-'}</td>
-            <td>${item.faculty || '-'}</td>
+            <td>${item.faculty || item.category || '-'}</td>
             <td>${item.hours_conducted ?? item.conducted ?? '-'}</td>
             <td>${item.hours_absent ?? item.absent ?? '-'}</td>
             <td><span class="badge ${badgeClass}">${pct}%</span></td>
