@@ -50,8 +50,9 @@ async def lifespan(app: FastAPI):
 
 # ── portal authentication gateway ────────────────────────────
 # When deployed on cloud environments (Render, HuggingFace) that are geoblocked by SRM,
-# route Student Portal requests through the live Indian portal gateway.
-PORTAL_GATEWAY_URL = os.getenv("PORTAL_GATEWAY_URL", "https://api.getratiod.lol")
+# route Student Portal requests through our own Indian Voroa portal gateway.
+PORTAL_GATEWAY_URL = os.getenv("PORTAL_GATEWAY_URL", "https://corespace-api.getvoroa.com")
+
 
 # ── tinyocr captcha auto-solver ──────────────────────────────
 TINYOCR_URL = os.getenv("TINYOCR_URL", "http://127.0.0.1:8080")
