@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>corespace — Student Academic Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(17, 24, 39, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-glow: rgba(99, 102, 241, 0.35);
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 10% 20%, #111827 0%, #080c14 90%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1080px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      color: white;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      letter-spacing: 0.5px;
+      text-transform: lowercase;
+    }
+
+    .brand h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .source-tag {
+      font-size: 12px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    /* CARD */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    /* LOGIN */
+    #login-section {
+      max-width: 580px;
+      margin: 30px auto;
+    }
+
+    .form-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .form-desc {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 18px;
+    }
+
+    .portal-toggle {
+      display: flex;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 18px;
+      gap: 4px;
+    }
+
+    .portal-toggle button {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 9px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .portal-toggle button.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .source-hint {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed var(--card-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #94a3b8;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .source-hint strong {
+      color: #818cf8;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .dual-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .dual-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .portal-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .portal-box h4 {
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 5px;
+    }
+
+    input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .captcha-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .captcha-img-wrap {
+      background: #ffffff;
+      padding: 3px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 110px;
+      height: 38px;
+    }
+
+    .captcha-img-wrap img {
+      height: 32px;
+      max-width: 110px;
+      object-fit: contain;
+    }
+
+    .btn-refresh-captcha {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px var(--primary-glow);
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .alert {
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-bottom: 18px;
+      display: none;
+    }
+
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    /* DASHBOARD */
+    #dashboard-section {
+      display: none;
+    }
+
+    .profile-card {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .profile-meta h2 {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .profile-details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+      width: 100%;
+    }
+
+    .meta-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 8px 12px;
+      border-radius: 8px;
+    }
+
+    .meta-item span {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+    }
+
+    .meta-item strong {
+      font-size: 13px;
+      color: #e2e8f0;
+    }
+
+    .btn-logout {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 10px;
+      overflow-x: auto;
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-tab.active {
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .tab-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .tab-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .source-label {
+      font-size: 12px;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    /* TABLES */
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    td {
+      padding: 13px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .badge-danger { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+
+    /* TIMETABLE GRID */
+    .grid-day {
+      margin-bottom: 20px;
+    }
+
+    .grid-day h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #818cf8;
+      margin-bottom: 8px;
+    }
+
+    .period-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .period-tag {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      min-width: 100px;
+    }
+
+    .period-tag span {
+      display: block;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .period-tag strong {
+      display: block;
+      color: white;
+      margin-top: 2px;
+    }
+
+    /* CALENDAR LIST */
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .cal-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .cal-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .cal-date {
+      font-weight: 700;
+      font-size: 14px;
+      color: white;
+    }
+
+    .cal-do {
+      font-size: 11px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .cal-desc {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    /* SPINNER */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="brand">
+        <span class="brand-badge">corespace</span>
+        <h1>Student Portal</h1>
+      </div>
+      <div class="source-tag" id="status-tag">Connected</div>
+    </header>
+
+    <!-- LOGIN FORM -->
+    <section id="login-section" class="card">
+      <h2 class="form-title">Student Sign In</h2>
+      <p class="form-desc">Log into both portals at once to fetch Marks, Attendance, Timetable & Calendar together!</p>
+
+      <div class="portal-toggle">
+        <button type="button" class="active" id="tab-dual" onclick="setMode('dual')">⚡ Dual Portal Login (All Data)</button>
+        <button type="button" id="tab-portal" onclick="setMode('portal')">Student Portal Only</button>
+        <button type="button" id="tab-academia" onclick="setMode('academia')">Academia Only</button>
+      </div>
+
+      <div class="source-hint" id="portal-hint">
+        <strong>⚡ Dual Login Mode:</strong><br>
+        • Scrapes <strong>Marks & Attendance</strong> from Student Portal (`sp.srmist`)<br>
+        • Scrapes <strong>Timetable, Courses & Calendar</strong> from Academia Portal (`academia`)<br>
+        • Merges all records into a single unified dashboard view!
+      </div>
+
+      <div class="alert alert-danger" id="login-error"></div>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <!-- DUAL MODE FIELDS -->
+        <div id="dual-fields">
+          <div class="dual-grid">
+            <!-- Student Portal Box -->
+            <div class="portal-box">
+              <h4 style="color:#818cf8;">
+                <span>🎓</span> Student Portal (sp.srmist)
+              </h4>
+              <p style="font-size: 11px; color:#94a3b8; margin-bottom: 10px;">For: <strong>Attendance & Marks</strong> (Auto-OCR)</p>
+              <div class="form-group">
+                <label for="portal-user">NetID / Reg Number</label>
+                <input type="text" id="portal-user" placeholder="ra2111003010123" autocomplete="username">
+              </div>
+              <div class="form-group">
+                <label for="portal-pass">Portal Password</label>
+                <input type="password" id="portal-pass" placeholder="••••••••••••" autocomplete="current-password">
+              </div>
+            </div>
+
+            <!-- Academia Box -->
+            <div class="portal-box">
+              <h4 style="color:#38bdf8;">
+                <span>📚</span> Academia (Zoho)
+              </h4>
+              <p style="font-size: 11px; color:#94a3b8; margin-bottom: 10px;">For: <strong>Timetable & Calendar</strong></p>
+              <div class="form-group">
+                <label for="acad-user">SRM Email ID</label>
+                <input type="text" id="acad-user" placeholder="xy1234@srmist.edu.in" autocomplete="username">
+              </div>
+              <div class="form-group">
+                <label for="acad-pass">Academia Password</label>
+                <input type="password" id="acad-pass" placeholder="••••••••••••" autocomplete="current-password">
+              </div>
+              <div class="form-group" id="acad-captcha-group">
+                <label for="acad-captcha">Academia CAPTCHA</label>
+                <input type="text" id="acad-captcha" placeholder="Enter CAPTCHA characters">
+                <div class="captcha-box">
+                  <div class="captcha-img-wrap" id="acad-captcha-img-wrap">
+                    <span style="color:#666; font-size:11px;">Loading...</span>
+                  </div>
+                  <button type="button" class="btn-refresh-captcha" onclick="fetchAcademiaCaptcha()">Refresh</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SINGLE MODE FIELDS -->
+        <div id="single-fields" style="display: none;">
+          <div class="form-group">
+            <label id="lbl-single-username" for="single-username">Username</label>
+            <input type="text" id="single-username" placeholder="Username" autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label for="single-password">Password</label>
+            <input type="password" id="single-password" placeholder="••••••••••••" autocomplete="current-password">
+          </div>
+          <div class="form-group" id="single-captcha-group" style="display: none;">
+            <label for="single-captcha">CAPTCHA</label>
+            <input type="text" id="single-captcha" placeholder="Enter characters">
+            <div class="captcha-box">
+              <div class="captcha-img-wrap" id="single-captcha-img-wrap">
+                <span style="color:#666; font-size:11px;">Loading...</span>
+              </div>
+              <button type="button" class="btn-refresh-captcha" onclick="fetchSingleCaptcha()">Refresh</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="btn-submit">
+          <div class="spinner" id="login-spinner"></div>
+          <span id="btn-text">Authenticate Both & Fetch All Data</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- DASHBOARD VIEW -->
+    <section id="dashboard-section">
+      <!-- PERSONAL DETAILS (BOTH PORTALS) -->
+      <div class="card profile-card">
+        <div style="width: 100%;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="profile-meta">
+              <h2 id="student-name">Student Name</h2>
+              <p style="color: #94a3b8; font-size: 13px;" id="portal-source-info">Source: Combined Dual Portal</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">Sign Out</button>
+          </div>
+
+          <div class="profile-details-grid" id="profile-grid">
+            <div class="meta-item"><span>Reg No</span><strong id="meta-regno">-</strong></div>
+            <div class="meta-item"><span>Program</span><strong id="meta-program">-</strong></div>
+            <div class="meta-item"><span>Department</span><strong id="meta-dept">-</strong></div>
+            <div class="meta-item"><span>Semester</span><strong id="meta-semester">-</strong></div>
+            <div class="meta-item"><span>Batch</span><strong id="meta-batch">-</strong></div>
+            <div class="meta-item"><span>Section</span><strong id="meta-section">-</strong></div>
+            <div class="meta-item"><span>Mobile / Contact</span><strong id="meta-mobile">-</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NAVIGATION TABS -->
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('attendance')">
+          Attendance <span class="tab-badge" id="badge-attendance">Portal</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('marks')">
+          Marks <span class="tab-badge" id="badge-marks">Portal</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('timetable')">
+          Timetable <span class="tab-badge" id="badge-timetable">Academia</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('courses')">
+          Courses <span class="tab-badge" id="badge-courses">Academia</span>
+        </button>
+        <button class="nav-tab" onclick="switchTab('calendar')">
+          Calendar <span class="tab-badge" id="badge-calendar">Academia</span>
+        </button>
+      </div>
+
+      <!-- ATTENDANCE TAB (PORTAL) -->
+      <div class="tab-content active card" id="tab-attendance-content">
+        <div class="tab-header">
+          <h3>Course-wise Attendance</h3>
+          <span class="source-label">Source: Student Portal (sp.srmist)</span>
+        </div>
+        <div class="table-wrap">
+          <table id="attendance-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Course Name</th>
+                <th>Slot</th>
+                <th>Faculty</th>
+                <th>Conducted</th>
+                <th>Absent</th>
+                <th>Attendance %</th>
+              </tr>
+            </thead>
+            <tbody id="attendance-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- MARKS TAB (PORTAL) -->
+      <div class="tab-content card" id="tab-marks-content">
+        <div class="tab-header">
+          <h3>Internal Marks & Assessments</h3>
+          <span class="source-label">Source: Student Portal (sp.srmist)</span>
+        </div>
+        <div class="table-wrap">
+          <table id="marks-table">
+            <thead>
+              <tr>
+                <th>Course Code</th>
+                <th>Course Title</th>
+                <th>Type</th>
+                <th>Evaluations</th>
+                <th>Total Scored</th>
+              </tr>
+            </thead>
+            <tbody id="marks-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TIMETABLE TAB (ACADEMIA / PORTAL) -->
+      <div class="tab-content card" id="tab-timetable-content">
+        <div class="tab-header">
+          <h3>Timetable & Slot Matrix</h3>
+          <span class="source-label" id="tt-source-label">Schedule Grid</span>
+        </div>
+        <div id="timetable-container"></div>
+      </div>
+
+      <!-- COURSES TAB (ACADEMIA / PORTAL) -->
+      <div class="tab-content card" id="tab-courses-content">
+        <div class="tab-header">
+          <h3>Registered Courses</h3>
+          <span class="source-label" id="courses-source-label">Enrolled List</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Course Code</th>
+                <th>Title</th>
+                <th>Credits</th>
+                <th>Type</th>
+                <th>Faculty</th>
+                <th>Room</th>
+                <th>Slot</th>
+              </tr>
+            </thead>
+            <tbody id="courses-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CALENDAR TAB (ACADEMIA) -->
+      <div class="tab-content card" id="tab-calendar-content">
+        <div class="tab-header">
+          <div>
+            <h3>Academic Planner & Calendar</h3>
+            <p style="font-size: 12px; color: #94a3b8; margin-top: 2px;">
+              Today's Day Order: <strong style="color: #818cf8;" id="today-day-order">-</strong>
+            </p>
+          </div>
+          <span class="source-label">Source: Academia</span>
+        </div>
+        <div class="cal-grid" id="calendar-grid"></div>
+      </div>
+    </section>
+  </div>
+
+    // Backend API base URL: defaults to our Indian Voroa backend for Cloudflare Pages
+    // (if served from the backend itself, uses relative paths)
+    const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ? ''
+      : (window.location.hostname.includes('pages.dev') || window.location.hostname.includes('cloudflare'))
+      ? 'https://corespace-api.getvoroa.com'
+      : '';
+
+    let mode = 'dual';
+    let currentAcademiaCdigest = null;
+    let currentSingleCdigest = null;
+
+
+    function setMode(newMode) {
+      mode = newMode;
+      document.getElementById('tab-dual').className = mode === 'dual' ? 'active' : '';
+      document.getElementById('tab-portal').className = mode === 'portal' ? 'active' : '';
+      document.getElementById('tab-academia').className = mode === 'academia' ? 'active' : '';
+
+      const dualFields = document.getElementById('dual-fields');
+      const singleFields = document.getElementById('single-fields');
+      const hint = document.getElementById('portal-hint');
+      const btnText = document.getElementById('btn-text');
+
+      if (mode === 'dual') {
+        dualFields.style.display = 'block';
+        singleFields.style.display = 'none';
+        hint.innerHTML = `
+          <strong>⚡ Dual Login Mode:</strong><br>
+          • Scrapes <strong>Marks & Attendance</strong> from Student Portal (\`sp.srmist\`)<br>
+          • Scrapes <strong>Timetable, Courses & Calendar</strong> from Academia Portal (\`academia\`)<br>
+          • Merges all records into a single unified dashboard view!
+        `;
+        btnText.innerText = 'Authenticate Both & Fetch All Data';
+        fetchAcademiaCaptcha();
+      } else if (mode === 'portal') {
+        dualFields.style.display = 'none';
+        singleFields.style.display = 'block';
+        document.getElementById('lbl-single-username').innerText = 'NetID / Registration Number';
+        document.getElementById('single-captcha-group').style.display = 'none';
+        hint.innerHTML = `
+          <strong>Target: SRM Student Portal (sp.srmist.edu.in)</strong><br>
+          • Personal Details, Marks, and Attendance.<br>
+          • Auto-solved CAPTCHA with local ONNX model!
+        `;
+        btnText.innerText = 'Sign In to Student Portal';
+      } else {
+        dualFields.style.display = 'none';
+        singleFields.style.display = 'block';
+        document.getElementById('lbl-single-username').innerText = 'Email ID (Academia)';
+        document.getElementById('single-captcha-group').style.display = 'block';
+        hint.innerHTML = `
+          <strong>Target: SRM Academia Portal (Zoho)</strong><br>
+          • Timetable, Courses, and Calendar.<br>
+          • Requires CAPTCHA entry.
+        `;
+        btnText.innerText = 'Sign In to Academia';
+        fetchSingleCaptcha();
+      }
+    }
+
+    async function fetchAcademiaCaptcha() {
+      const wrap = document.getElementById('acad-captcha-img-wrap');
+      wrap.innerHTML = '<span style="color:#666; font-size:11px;">Loading...</span>';
+      try {
+        const res = await fetch(`${API_BASE}/portal/captcha`, { method: 'POST' });
+        const data = await res.json();
+        if (data.image) {
+          wrap.innerHTML = `<img src="${data.image}" alt="Captcha">`;
+          currentAcademiaCdigest = data.cdigest || data.session;
+        }
+      } catch (e) {
+        wrap.innerHTML = '<span style="color:red; font-size:11px;">Error</span>';
+      }
+    }
+
+    async function fetchSingleCaptcha() {
+      const wrap = document.getElementById('single-captcha-img-wrap');
+      wrap.innerHTML = '<span style="color:#666; font-size:11px;">Loading...</span>';
+      try {
+        const res = await fetch(`${API_BASE}/portal/captcha`, { method: 'POST' });
+        const data = await res.json();
+        if (data.image) {
+          wrap.innerHTML = `<img src="${data.image}" alt="Captcha">`;
+          currentSingleCdigest = data.cdigest || data.session;
+        }
+      } catch (e) {
+        wrap.innerHTML = '<span style="color:red; font-size:11px;">Error</span>';
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById(`tab-${tabId}-content`).classList.add('active');
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const errBox = document.getElementById('login-error');
+      const spinner = document.getElementById('login-spinner');
+      const btnText = document.getElementById('btn-text');
+      const btn = document.getElementById('btn-submit');
+
+      errBox.style.display = 'none';
+      spinner.style.display = 'inline-block';
+      btnText.innerText = 'Authenticating & Scraping Data...';
+      btn.disabled = true;
+
+      try {
+        let endpoint = '';
+        let payload = {};
+
+        if (mode === 'dual') {
+          endpoint = '/api/dual-login';
+          const pUser = document.getElementById('portal-user').value.trim();
+          const pPass = document.getElementById('portal-pass').value;
+          const aUser = document.getElementById('acad-user').value.trim();
+          const aPass = document.getElementById('acad-pass').value;
+          const aCap = document.getElementById('acad-captcha').value.trim();
+
+          if (!pUser && !aUser) {
+            throw new Error('Please enter credentials for at least one portal.');
+          }
+
+          payload = {
+            portal_username: pUser || null,
+            portal_password: pPass || null,
+            academia_username: aUser || null,
+            academia_password: aPass || null,
+            academia_captcha: aCap || null,
+            academia_cdigest: currentAcademiaCdigest || null
+          };
+        } else if (mode === 'portal') {
+          endpoint = '/portal/login';
+          const u = document.getElementById('single-username').value.trim();
+          const p = document.getElementById('single-password').value;
+          payload = { username: u, password: p };
+        } else {
+          endpoint = '/login';
+          const u = document.getElementById('single-username').value.trim();
+          const p = document.getElementById('single-password').value;
+          const c = document.getElementById('single-captcha').value.trim();
+          payload = {
+            username: u,
+            password: p,
+            ...(c ? { captcha: c } : {}),
+            ...(currentSingleCdigest ? { cdigest: currentSingleCdigest } : {})
+          };
+        }
+
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || (data.success === false && !data.portal_ok && !data.academia_ok)) {
+          let msg = data.detail?.message || data.detail || 'Login failed. Please check your credentials.';
+          if (data.errors) {
+            msg = Object.entries(data.errors).map(([k, v]) => `${k.toUpperCase()}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join(' | ');
+          }
+          if (typeof msg === 'object') msg = JSON.stringify(msg);
+          errBox.innerText = msg;
+          errBox.style.display = 'block';
+
+          if (data.detail?.image) {
+            if (mode === 'dual') {
+              document.getElementById('acad-captcha-img-wrap').innerHTML = `<img src="${data.detail.image}" alt="Captcha">`;
+              currentAcademiaCdigest = data.detail.cdigest;
+            } else {
+              document.getElementById('single-captcha-group').style.display = 'block';
+              document.getElementById('single-captcha-img-wrap').innerHTML = `<img src="${data.detail.image}" alt="Captcha">`;
+              currentSingleCdigest = data.detail.cdigest;
+            }
+          }
+          return;
+        }
+
+        // Check if there was partial error in dual login
+        if (mode === 'dual' && data.errors && Object.keys(data.errors).length > 0) {
+          const warningMsg = Object.entries(data.errors).map(([k, v]) => `${k.toUpperCase()} error: ${typeof v === 'object' ? (v.message || JSON.stringify(v)) : v}`).join(' | ');
+          console.warn("Partial dual-login error:", warningMsg);
+          window._lastDualWarning = warningMsg;
+        } else {
+          window._lastDualWarning = null;
+        }
+
+        renderDashboard(data);
+      } catch (err) {
+        errBox.innerText = 'Connection error: ' + err.message;
+        errBox.style.display = 'block';
+      } finally {
+        spinner.style.display = 'none';
+        btnText.innerText = mode === 'dual' ? 'Authenticate Both & Fetch All Data' : 'Sign In & Fetch Data';
+        btn.disabled = false;
+      }
+    }
+
+    function renderDashboard(data) {
+      document.getElementById('login-section').style.display = 'none';
+      document.getElementById('dashboard-section').style.display = 'block';
+
+      let sourceText = 'Combined Dual Portals';
+      if (data.portal_ok && !data.academia_ok) sourceText = 'Student Portal Only (sp.srmist)';
+      else if (!data.portal_ok && data.academia_ok) sourceText = 'Academia Only (Zoho)';
+      else if (data.isPortal) sourceText = 'Student Portal (sp.srmist)';
+      else if (data.source === 'academia') sourceText = 'Academia (Zoho)';
+      
+      let sourceInfoEl = document.getElementById('portal-source-info');
+      if (window._lastDualWarning) {
+        sourceInfoEl.innerHTML = `<span style="color:#ef4444;">⚠️ Notice: ${window._lastDualWarning}</span> (Showing: ${sourceText})`;
+      } else {
+        sourceInfoEl.innerText = `Source: ${sourceText}`;
+      }
+
+      // 1. PERSONAL DETAILS (MERGED FROM BOTH)
+      const prof = data.profile || {};
+      document.getElementById('student-name').innerText = 
+        prof.name || prof.student_name || 'SRM Student';
+      document.getElementById('meta-regno').innerText = 
+        prof.regNo || prof.registration_number || prof.reg_no || '-';
+      document.getElementById('meta-program').innerText = 
+        prof.program || '-';
+      document.getElementById('meta-dept').innerText = 
+        prof.dept || prof.department || '-';
+      document.getElementById('meta-semester').innerText = 
+        prof.semester || '-';
+      document.getElementById('meta-batch').innerText = 
+        prof.batch || '-';
+      document.getElementById('meta-section').innerText = 
+        prof.section || '-';
+      document.getElementById('meta-mobile').innerText = 
+        prof.mobile || '-';
+
+      // 2. ATTENDANCE (PORTAL)
+      const attBody = document.getElementById('attendance-tbody');
+      attBody.innerHTML = '';
+      const attList = data.attendance || [];
+      if (attList.length === 0) {
+        attBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#9ca3af;">No attendance records found.</td></tr>';
+      } else {
+        attList.forEach(item => {
+          const pct = parseFloat(item.attendance_pct ?? item.percentage ?? item.percent ?? 0);
+          let badgeClass = 'badge-success';
+          if (pct < 75) badgeClass = 'badge-danger';
+          else if (pct < 80) badgeClass = 'badge-warning';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${item.course_code || item.code || '-'}</strong></td>
+            <td>${item.course_title || item.title || '-'}</td>
+            <td>${item.slot || '-'}</td>
+            <td>${item.faculty || item.category || '-'}</td>
+            <td>${item.hours_conducted ?? item.conducted ?? '-'}</td>
+            <td>${item.hours_absent ?? item.absent ?? '-'}</td>
+            <td><span class="badge ${badgeClass}">${pct}%</span></td>
+          `;
+          attBody.appendChild(tr);
+        });
+      }
+
+      // 3. MARKS (PORTAL)
+      const marksBody = document.getElementById('marks-tbody');
+      marksBody.innerHTML = '';
+      const marksList = data.marks || [];
+      if (marksList.length === 0) {
+        marksBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#9ca3af;">No marks records found.</td></tr>';
+      } else {
+        marksList.forEach(m => {
+          const tests = m.tests || m.assessments || [];
+          const testSummary = tests.map(t => `${t.test || t.name}: ${t.scored ?? t.mark ?? '-'}/${t.max ?? '-'}`).join(', ') || 'N/A';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${m.course_code || m.courseCode || '-'}</strong></td>
+            <td>${m.title || m.course_title || '-'}</td>
+            <td>${m.course_type || m.type || 'Internal'}</td>
+            <td style="font-size:12px; color:#cbd5e1;">${testSummary}</td>
+            <td><strong>${m.total ?? m.totalMarkGot ?? '-'}</strong></td>
+          `;
+          marksBody.appendChild(tr);
+        });
+      }
+
+      // 4. TIMETABLE (ACADEMIA / PORTAL)
+      const ttContainer = document.getElementById('timetable-container');
+      ttContainer.innerHTML = '';
+      const sched = data.schedule || data.timetable || {};
+      const days = Object.keys(sched);
+      if (days.length === 0) {
+        ttContainer.innerHTML = '<p style="color:#9ca3af;">No timetable grid available.</p>';
+      } else {
+        days.forEach(day => {
+          const dayDiv = document.createElement('div');
+          dayDiv.className = 'grid-day';
+          const periods = sched[day] || {};
+          let tagsHtml = '';
+          for (const [period, slot] of Object.entries(periods)) {
+            let slotText = typeof slot === 'object' ? (slot.code || slot.name || slot.slot) : slot;
+            tagsHtml += `<div class="period-tag"><span>${period}</span><strong>${slotText || '-'}</strong></div>`;
+          }
+          dayDiv.innerHTML = `<h4>${day}</h4><div class="period-tags">${tagsHtml}</div>`;
+          ttContainer.appendChild(dayDiv);
+        });
+      }
+
+      // 5. COURSES (ACADEMIA)
+      const coursesBody = document.getElementById('courses-tbody');
+      coursesBody.innerHTML = '';
+      let courseList = [];
+      if (Array.isArray(data.courses)) {
+        courseList = data.courses;
+      } else if (typeof data.courses === 'object' && data.courses !== null) {
+        const seen = new Set();
+        Object.values(data.courses).forEach(c => {
+          if (c && c.code && !seen.has(c.code)) {
+            seen.add(c.code);
+            courseList.push(c);
+          }
+        });
+      }
+
+      if (courseList.length === 0) {
+        coursesBody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#9ca3af;">No course records available.</td></tr>';
+      } else {
+        courseList.forEach(c => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><strong>${c.code || '-'}</strong></td>
+            <td>${c.name || c.title || '-'}</td>
+            <td>${c.credits || '-'}</td>
+            <td>${c.type || c.raw_type || '-'}</td>
+            <td>${c.faculty || '-'}</td>
+            <td>${c.room || '-'}</td>
+            <td><span class="badge" style="background:rgba(255,255,255,0.08);">${c.slot || '-'}</span></td>
+          `;
+          coursesBody.appendChild(tr);
+        });
+      }
+
+      // 6. CALENDAR (ACADEMIA)
+      const calGrid = document.getElementById('calendar-grid');
+      calGrid.innerHTML = '';
+      document.getElementById('today-day-order').innerText = data.dayOrder || '-';
+      const calList = data.calendar || [];
+      if (calList.length === 0) {
+        calGrid.innerHTML = '<p style="color:#9ca3af;">Calendar data available when signing into Academia.</p>';
+      } else {
+        calList.forEach(entry => {
+          const div = document.createElement('div');
+          div.className = 'cal-card';
+          div.innerHTML = `
+            <div class="cal-top">
+              <span class="cal-date">${entry.date} (${entry.day})</span>
+              <span class="cal-do">DO: ${entry.dayOrder || '-'}</span>
+            </div>
+            <div class="cal-desc">${entry.description || 'Regular Class'}</div>
+          `;
+          calGrid.appendChild(div);
+        });
+      }
+    }
+
+    function logout() {
+      document.getElementById('dashboard-section').style.display = 'none';
+      document.getElementById('login-section').style.display = 'block';
+      document.getElementById('portal-pass').value = '';
+      document.getElementById('acad-pass').value = '';
+    }
+
+    // Initialize default mode
+    setMode('dual');
+  </script>
+</body>
+</html>
